@@ -1,14 +1,16 @@
-//Nosso Jogador
+// Our Player
 struct Cobra
 {
 	int x;
 	int y;
-	int lives;
+	int vida;
+	int velocidade;
 };
 
 struct Comida
 {
 	int x;
 	int y;
-	int score;
+	bool vida;
+	int pontuacao;
 };
