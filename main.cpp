@@ -29,6 +29,8 @@ void desenharParede();
 void IniciarCobra();
 void desenharCobra();
 
+void Movimento();
+
 void IniciarComida();
 void desenharComida();
 
@@ -46,8 +48,11 @@ const int FPS = 60;
 bool isGameOver = false;
 
 //object variables
-Cobra cobra[TAM_CAUDA];
+int tam = 3;
+int DIR = DOWN;
+Cobra cobra;
 Comida comidas;
+Cobra cauda[TAM_CAUDA];
 
 //Allegro variables
 ALLEGRO_DISPLAY *display = NULL;
@@ -104,6 +109,7 @@ void comecoJogo()
     desenharParede();
     desenharCobra();
     desenharComida();
+    Movimento();
 }
 void loopJogo()
 {
@@ -119,18 +125,30 @@ void loopJogo()
         {
             redraw = true;
             if (keys[UP])
-                MoverCima();
+            {
+                if (DIR != DOWN)
+                    DIR = UP;
+            }
             if (keys[DOWN])
-                MoverBaixo();
+            {
+                if (DIR != UP)
+                    DIR = DOWN;
+            }
             if (keys[LEFT])
-                MoverEsquerda();
+            {
+                if (DIR != RIGHT)
+                    DIR = LEFT;
+            }
             if (keys[RIGHT])
-                MoverDireita();
+            {
+                if (DIR != LEFT)
+                    DIR = RIGHT;
+            }
 
             if (!isGameOver)
             {
 
-                if (cobra[0].vida <= 0)
+                if (cobra.vida <= 0)
                     isGameOver = true;
             }
         }
@@ -168,7 +186,6 @@ void loopJogo()
                 break;
             case ALLEGRO_KEY_UP:
                 keys[UP] = false;
-                comidas.vida = false;
                 break;
             case ALLEGRO_KEY_DOWN:
                 keys[DOWN] = false;
@@ -208,15 +225,58 @@ void desenharParede()
 
 void IniciarCobra()
 {
-    cobra[0].x = 400;
-    cobra[0].y = 400;
-    cobra[0].vida = 500;
-    cobra[0].velocidade = 10;
+    cauda[0].x = 500;
+    cauda[0].y = 200;
+    cobra.vida = 500;
+    cobra.velocidade = 5;
+    for (int i = 1; i <= tam; i++)
+    {
+        cauda[i].x = cobra.x;
+        cauda[i].y = cobra.y;
+    }
 }
 void desenharCobra()
 {
-    al_draw_filled_rectangle(cobra[0].x, cobra[0].y, cobra[0].x + TAM_COBRA, cobra[0].y + TAM_COBRA, al_map_rgb(0, 200, 0));
-    al_draw_filled_rectangle(cobra[0].x + 25, cobra[0].y, cobra[0].x + TAM_COBRA, cobra[0].y + TAM_COBRA, al_map_rgb(255, 255, 255));
+    for (int i = 0; i <= tam; i++)
+    {
+        al_draw_filled_rectangle(cauda[i].x, cauda[i].y, cauda[i].x + TAM_COBRA, cauda[i].y + TAM_COBRA, al_map_rgb(0, 255, 0));
+    }
+    al_draw_filled_rectangle(cauda[0].x, cauda[0].y, cauda[0].x + TAM_COBRA, cauda[0].y + TAM_COBRA, al_map_rgb(0, 200, 0));
+}
+
+void Movimento()
+{
+
+    for (int i = tam; i > 0; i--)
+    {
+        cauda[i] = cauda[i - 1];
+    }
+    switch (DIR)
+    {
+    case UP:
+        cauda[0].y -= cobra.velocidade;
+        if (cauda[0].y < TAM_COBRA)
+            cauda[0].y = TAM_COBRA;
+        break;
+    case DOWN:
+        cauda[0].y += cobra.velocidade;
+        if (cauda[0].y > HEIGHT - TAM_COBRA * 2)
+            cauda[0].y = HEIGHT - TAM_COBRA * 2;
+        break;
+    case LEFT:
+        cauda[0].x -= cobra.velocidade;
+        if (cauda[0].x < TAM_COBRA)
+            cauda[0].x = TAM_COBRA;
+        break;
+    case RIGHT:
+        cauda[0].x += cobra.velocidade;
+        if (cauda[0].x > WIDTH - TAM_COBRA * 2)
+            cauda[0].x = WIDTH - TAM_COBRA * 2;
+        break;
+
+    default:
+        break;
+    }
 }
 
 void IniciarComida()
@@ -240,29 +300,4 @@ void desenharComida()
 void desenharPontuacao()
 {
     al_draw_textf(font18, al_map_rgb(0, 0, 0), 5, 5, 0, "Pontuacao %i", comidas.pontuacao);
-}
-
-void MoverCima()
-{
-    cobra[0].y -= cobra[0].velocidade;
-    if (cobra[0].y < TAM_COBRA)
-        cobra[0].y = TAM_COBRA;
-}
-void MoverBaixo()
-{
-    cobra[0].y += cobra[0].velocidade;
-    if (cobra[0].y > HEIGHT - TAM_COBRA * 2)
-        cobra[0].y = HEIGHT - TAM_COBRA * 2;
-}
-void MoverEsquerda()
-{
-    cobra[0].x -= cobra[0].velocidade;
-    if (cobra[0].x < TAM_COBRA)
-        cobra[0].x = TAM_COBRA;
-}
-void MoverDireita()
-{
-    cobra[0].x += cobra[0].velocidade;
-    if (cobra[0].x > WIDTH - TAM_COBRA * 2)
-        cobra[0].x = WIDTH - TAM_COBRA * 2;
 }
