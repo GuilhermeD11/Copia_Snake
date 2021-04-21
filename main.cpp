@@ -48,7 +48,6 @@ const int FPS = 60;
 bool isGameOver = false;
 
 //object variables
-int tam = 3;
 int DIR = DOWN;
 Cobra cobra;
 Comida comidas;
@@ -174,6 +173,9 @@ void loopJogo()
                 break;
             case ALLEGRO_KEY_RIGHT:
                 keys[RIGHT] = true;
+            case ALLEGRO_KEY_D:
+                comidas.vida = false;
+                cobra.tam++;
                 break;
             }
         }
@@ -229,7 +231,8 @@ void IniciarCobra()
     cauda[0].y = 200;
     cobra.vida = 500;
     cobra.velocidade = 5;
-    for (int i = 1; i <= tam; i++)
+    cobra.tam = 2;
+    for (int i = 1; i <= cobra.tam; i++)
     {
         cauda[i].x = cobra.x;
         cauda[i].y = cobra.y;
@@ -237,7 +240,7 @@ void IniciarCobra()
 }
 void desenharCobra()
 {
-    for (int i = 0; i <= tam; i++)
+    for (int i = 0; i <= cobra.tam; i++)
     {
         al_draw_filled_rectangle(cauda[i].x, cauda[i].y, cauda[i].x + TAM_COBRA, cauda[i].y + TAM_COBRA, al_map_rgb(0, 255, 0));
     }
@@ -247,7 +250,7 @@ void desenharCobra()
 void Movimento()
 {
 
-    for (int i = tam; i > 0; i--)
+    for (int i = cobra.tam; i > 0; i--)
     {
         cauda[i] = cauda[i - 1];
     }
@@ -289,12 +292,12 @@ void desenharComida()
 
     if (comidas.vida == false)
     {
-        comidas.x = (rand() % (WIDTH - TAM_COBRA)) + TAM_COBRA;
-        comidas.y = (rand() % (HEIGHT - TAM_COBRA)) + TAM_COBRA;
-        al_draw_filled_rectangle(comidas.x, comidas.y, comidas.x + TAM_COBRA, comidas.y + TAM_COBRA, al_map_rgb(255, 0, 0));
+        comidas.x = (rand() % (WIDTH / TAM_COBRA - 2)) + 1;
+        comidas.y = (rand() % (HEIGHT / TAM_COBRA - 3)) + 1;
+        al_draw_filled_rectangle(comidas.x * TAM_COBRA, comidas.y * TAM_COBRA, comidas.x * TAM_COBRA + TAM_COBRA, comidas.y * TAM_COBRA + TAM_COBRA, al_map_rgb(255, 0, 0));
         comidas.vida = true;
     }
-    al_draw_filled_rectangle(comidas.x, comidas.y, comidas.x + TAM_COBRA, comidas.y + TAM_COBRA, al_map_rgb(255, 0, 0));
+    al_draw_filled_rectangle(comidas.x * TAM_COBRA, comidas.y * TAM_COBRA, comidas.x * TAM_COBRA + TAM_COBRA, comidas.y * TAM_COBRA + TAM_COBRA, al_map_rgb(255, 0, 0));
 }
 
 void desenharPontuacao()

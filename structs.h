@@ -5,6 +5,7 @@ struct Cobra
 	int y;
 	int vida;
 	int velocidade;
+	int tam;
 };
 
 struct Comida
