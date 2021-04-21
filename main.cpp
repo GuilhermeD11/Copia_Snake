@@ -290,7 +290,7 @@ void Movimento()
 void IniciarComida()
 {
     comidas.vida = false;
-    comidas.pontuacao = 0;
+    comidas.pontuacao = 10;
 }
 void desenharComida()
 {
