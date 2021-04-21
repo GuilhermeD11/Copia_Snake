@@ -41,6 +41,8 @@ void MoverBaixo();
 void MoverEsquerda();
 void MoverDireita();
 
+int verificaColisao(Cobra cobra, Comida &comida, int largura, int altura);
+
 //primitive variable
 bool done = false;
 bool redraw = true;
@@ -173,6 +175,7 @@ void loopJogo()
                 break;
             case ALLEGRO_KEY_RIGHT:
                 keys[RIGHT] = true;
+                break;
             case ALLEGRO_KEY_D:
                 comidas.vida = false;
                 cobra.tam++;
@@ -208,6 +211,8 @@ void loopJogo()
             if (!isGameOver)
             {
                 desenharPontuacao();
+                desenharComida;
+                verificaColisao(cobra, comidas, WIDTH, HEIGHT);
             }
             else
             {
@@ -285,7 +290,7 @@ void Movimento()
 void IniciarComida()
 {
     comidas.vida = false;
-    comidas.pontuacao = 10;
+    comidas.pontuacao = 0;
 }
 void desenharComida()
 {
@@ -303,4 +308,19 @@ void desenharComida()
 void desenharPontuacao()
 {
     al_draw_textf(font18, al_map_rgb(0, 0, 0), 5, 5, 0, "Pontuacao %i", comidas.pontuacao);
+}
+
+int verificaColisao(Cobra cobra, Comida &comida, int largura, int altura){
+
+    if(comida.x == cobra.x){
+
+        al_draw_textf(font18, al_map_rgb(0, 0, 0), 5, 5, 0, "Colidiu");
+        comida.pontuacao++;
+        comida.vida = false;
+        cobra.tam += 50;
+
+    }
+
+
+
 }
