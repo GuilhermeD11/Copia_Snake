@@ -5,10 +5,10 @@
 #include "structs.h"
 
 //GLOBALS==============================
-const int WIDTH = 1250;
-const int HEIGHT = 900;
-const int TAM_COBRA = 50;
-const int TAM_CAUDA = 400;
+const int WIDTH = 1200;
+const int HEIGHT = 864;
+const int TAM_COBRA = 8;
+const int TAM_CAUDA = 4000;
 enum KEYS
 {
     UP,
@@ -41,7 +41,7 @@ void MoverBaixo();
 void MoverEsquerda();
 void MoverDireita();
 
-int verificaColisao(Cobra cobra, Comida &comida, int largura, int altura);
+int verificaColisao();
 
 //primitive variable
 bool done = false;
@@ -107,10 +107,18 @@ int main(void)
 
 void comecoJogo()
 {
-    desenharParede();
     desenharCobra();
     desenharComida();
     Movimento();
+    desenharParede();
+    // for (int i = 0; i < WIDTH / TAM_COBRA; i++)
+    // {
+    //     al_draw_line(i * TAM_COBRA, 0, i * TAM_COBRA, HEIGHT, al_map_rgb(0, 255, 255), 1);
+    // }
+    // for (int i = 0; i < HEIGHT / TAM_COBRA; i++)
+    // {
+    //     al_draw_line(0, i * TAM_COBRA, WIDTH, i * TAM_COBRA, al_map_rgb(0, 255, 0), 1);
+    // }
 }
 void loopJogo()
 {
@@ -212,7 +220,7 @@ void loopJogo()
             {
                 desenharPontuacao();
                 desenharComida;
-                verificaColisao(cobra, comidas, WIDTH, HEIGHT);
+                verificaColisao();
             }
             else
             {
@@ -227,20 +235,23 @@ void fimJogo();
 
 void desenharParede()
 {
-    al_draw_rectangle(TAM_COBRA / 2, TAM_COBRA / 2, WIDTH - (TAM_COBRA / 2), HEIGHT - (TAM_COBRA / 2), al_map_rgb(100, 100, 100), TAM_COBRA);
+    al_draw_rectangle(TAM_COBRA / 2, (TAM_COBRA * 3) + TAM_COBRA / 2, WIDTH - (TAM_COBRA / 2), HEIGHT - (TAM_COBRA / 2), al_map_rgb(100, 100, 100), TAM_COBRA);
+    al_draw_line(TAM_COBRA / 2, TAM_COBRA / 2, TAM_COBRA / 2, HEIGHT, al_map_rgb(100, 100, 100), TAM_COBRA);
+    al_draw_line(WIDTH - (TAM_COBRA / 2), TAM_COBRA / 2, WIDTH - (TAM_COBRA / 2), HEIGHT, al_map_rgb(100, 100, 100), TAM_COBRA);
+    al_draw_line(0, TAM_COBRA / 2, WIDTH, TAM_COBRA / 2, al_map_rgb(100, 100, 100), TAM_COBRA);
 }
 
 void IniciarCobra()
 {
-    cauda[0].x = 500;
-    cauda[0].y = 200;
+    cauda[0].x = 200;
+    cauda[0].y = 144;
     cobra.vida = 500;
-    cobra.velocidade = 5;
+    cobra.velocidade = 8;
     cobra.tam = 2;
     for (int i = 1; i <= cobra.tam; i++)
     {
-        cauda[i].x = cobra.x;
-        cauda[i].y = cobra.y;
+        cauda[i].x = cauda[0].x;
+        cauda[i].y = cauda[0].y;
     }
 }
 void desenharCobra()
@@ -263,8 +274,8 @@ void Movimento()
     {
     case UP:
         cauda[0].y -= cobra.velocidade;
-        if (cauda[0].y < TAM_COBRA)
-            cauda[0].y = TAM_COBRA;
+        if (cauda[0].y < (TAM_COBRA * 3 + TAM_COBRA))
+            cauda[0].y = (TAM_COBRA * 3 + TAM_COBRA);
         break;
     case DOWN:
         cauda[0].y += cobra.velocidade;
@@ -298,7 +309,7 @@ void desenharComida()
     if (comidas.vida == false)
     {
         comidas.x = (rand() % (WIDTH / TAM_COBRA - 2)) + 1;
-        comidas.y = (rand() % (HEIGHT / TAM_COBRA - 3)) + 1;
+        comidas.y = (rand() % (HEIGHT / TAM_COBRA - 3)) + 4;
         al_draw_filled_rectangle(comidas.x * TAM_COBRA, comidas.y * TAM_COBRA, comidas.x * TAM_COBRA + TAM_COBRA, comidas.y * TAM_COBRA + TAM_COBRA, al_map_rgb(255, 0, 0));
         comidas.vida = true;
     }
@@ -307,20 +318,19 @@ void desenharComida()
 
 void desenharPontuacao()
 {
-    al_draw_textf(font18, al_map_rgb(0, 0, 0), 5, 5, 0, "Pontuacao %i", comidas.pontuacao);
+    al_draw_textf(font18, al_map_rgb(255, 255, 255), 5, 5, 0, "Pontuacao %i %i", comidas.x * TAM_COBRA, comidas.y * TAM_COBRA);
 }
 
-int verificaColisao(Cobra cobra, Comida &comida, int largura, int altura){
+int verificaColisao()
+{
 
-    if(comida.x == cobra.x){
+    if (comidas.x == cauda[0].x)
+    {
 
         al_draw_textf(font18, al_map_rgb(0, 0, 0), 5, 5, 0, "Colidiu");
-        comida.pontuacao++;
-        comida.vida = false;
+        comidas.pontuacao++;
+        comidas.vida = false;
         cobra.tam += 50;
-
     }
-
-
-
+    return 0;
 }
