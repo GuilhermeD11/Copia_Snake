@@ -2,6 +2,7 @@
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
+#include <allegro5/allegro_image.h>
 #include "structs.h"
 
 //GLOBALS==============================
@@ -54,12 +55,18 @@ int DIR = DOWN;
 Cobra cobra;
 Comida comidas;
 Cobra cauda[TAM_CAUDA];
+int curFrame = 2;
+int frameHeigth = 8;
+int frameWidth = 8;
 
 //Allegro variables
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_FONT *font18 = NULL;
+ALLEGRO_BITMAP *icobra = NULL;
+ALLEGRO_BITMAP *icomida = NULL;
+ALLEGRO_BITMAP *paredes = NULL;
 
 int main(void)
 {
@@ -77,6 +84,11 @@ int main(void)
     al_install_keyboard();
     al_init_font_addon();
     al_init_ttf_addon();
+    al_init_image_addon();
+
+    icobra = al_load_bitmap("assets/cobra.png");
+    icomida = al_load_bitmap("assets/comida.png");
+    paredes = al_load_bitmap("assets/paredes.png");
 
     event_queue = al_create_event_queue();
     timer = al_create_timer(1.0 / FPS);
@@ -101,24 +113,17 @@ int main(void)
     al_destroy_timer(timer);
     al_destroy_font(font18);
     al_destroy_display(display); //destroy our display object
+    al_destroy_bitmap(icobra);
 
     return 0;
 }
 
 void comecoJogo()
 {
-    desenharCobra();
     desenharComida();
+    desenharCobra();
     Movimento();
     desenharParede();
-    // for (int i = 0; i < WIDTH / TAM_COBRA; i++)
-    // {
-    //     al_draw_line(i * TAM_COBRA, 0, i * TAM_COBRA, HEIGHT, al_map_rgb(0, 255, 255), 1);
-    // }
-    // for (int i = 0; i < HEIGHT / TAM_COBRA; i++)
-    // {
-    //     al_draw_line(0, i * TAM_COBRA, WIDTH, i * TAM_COBRA, al_map_rgb(0, 255, 0), 1);
-    // }
 }
 void loopJogo()
 {
@@ -136,22 +141,34 @@ void loopJogo()
             if (keys[UP])
             {
                 if (DIR != DOWN)
+                {
                     DIR = UP;
+                    curFrame = 0;
+                }
             }
             if (keys[DOWN])
             {
                 if (DIR != UP)
+                {
                     DIR = DOWN;
+                    curFrame = 2;
+                }
             }
             if (keys[LEFT])
             {
                 if (DIR != RIGHT)
+                {
                     DIR = LEFT;
+                    curFrame = 1;
+                }
             }
             if (keys[RIGHT])
             {
                 if (DIR != LEFT)
+                {
                     DIR = RIGHT;
+                    curFrame = 3;
+                }
             }
 
             if (!isGameOver)
@@ -174,19 +191,24 @@ void loopJogo()
                 break;
             case ALLEGRO_KEY_UP:
                 keys[UP] = true;
+
                 break;
             case ALLEGRO_KEY_DOWN:
                 keys[DOWN] = true;
+
                 break;
             case ALLEGRO_KEY_LEFT:
+
                 keys[LEFT] = true;
                 break;
             case ALLEGRO_KEY_RIGHT:
+
                 keys[RIGHT] = true;
                 break;
             case ALLEGRO_KEY_D:
                 comidas.vida = false;
                 cobra.tam++;
+                comidas.pontuacao +=10;
                 break;
             }
         }
@@ -235,10 +257,24 @@ void fimJogo();
 
 void desenharParede()
 {
-    al_draw_rectangle(TAM_COBRA / 2, (TAM_COBRA * 3) + TAM_COBRA / 2, WIDTH - (TAM_COBRA / 2), HEIGHT - (TAM_COBRA / 2), al_map_rgb(100, 100, 100), TAM_COBRA);
-    al_draw_line(TAM_COBRA / 2, TAM_COBRA / 2, TAM_COBRA / 2, HEIGHT, al_map_rgb(100, 100, 100), TAM_COBRA);
-    al_draw_line(WIDTH - (TAM_COBRA / 2), TAM_COBRA / 2, WIDTH - (TAM_COBRA / 2), HEIGHT, al_map_rgb(100, 100, 100), TAM_COBRA);
-    al_draw_line(0, TAM_COBRA / 2, WIDTH, TAM_COBRA / 2, al_map_rgb(100, 100, 100), TAM_COBRA);
+
+    for (int i = 0; i < HEIGHT / TAM_COBRA; i++)
+    {
+        al_draw_bitmap_region(paredes, 1 * frameWidth, 0, frameWidth, frameHeigth, 0, TAM_COBRA * i, 0);
+        al_draw_bitmap_region(paredes, 2 * frameWidth, 0, frameWidth, frameHeigth, WIDTH - TAM_COBRA, TAM_COBRA * i, 0);
+    }
+    for (int i = 0; i < WIDTH / TAM_COBRA; i++)
+    {
+        al_draw_bitmap_region(paredes, 0 * frameWidth, 0, frameWidth, frameHeigth, TAM_COBRA * i, 0, 0);
+        al_draw_bitmap_region(paredes, 3 * frameWidth, 0, frameWidth, frameHeigth, TAM_COBRA * i, HEIGHT - 8, 0);
+        al_draw_bitmap_region(paredes, 4 * frameWidth, 0, frameWidth, frameHeigth, TAM_COBRA * i, TAM_COBRA * 3, 0);
+    }
+    al_draw_bitmap_region(paredes, 6 * frameWidth, 0, frameWidth, frameHeigth, 0, 0, 0);
+    al_draw_bitmap_region(paredes, 7 * frameWidth, 0, frameWidth, frameHeigth, WIDTH - TAM_COBRA, 0, 0);
+    al_draw_bitmap_region(paredes, 7 * frameWidth, 0, frameWidth, frameHeigth, 0, HEIGHT-TAM_COBRA, 0);
+    al_draw_bitmap_region(paredes, 6 * frameWidth, 0, frameWidth, frameHeigth, WIDTH - TAM_COBRA, HEIGHT-TAM_COBRA, 0);
+    al_draw_bitmap_region(paredes, 6 * frameWidth, 0, frameWidth, frameHeigth, 0, TAM_COBRA * 3, 0);
+    al_draw_bitmap_region(paredes, 7 * frameWidth, 0, frameWidth, frameHeigth, WIDTH-TAM_COBRA, TAM_COBRA * 3, 0);
 }
 
 void IniciarCobra()
@@ -247,7 +283,7 @@ void IniciarCobra()
     cauda[0].y = 144;
     cobra.vida = 500;
     cobra.velocidade = 8;
-    cobra.tam = 2;
+    cobra.tam = 3;
     for (int i = 1; i <= cobra.tam; i++)
     {
         cauda[i].x = cauda[0].x;
@@ -258,9 +294,9 @@ void desenharCobra()
 {
     for (int i = 0; i <= cobra.tam; i++)
     {
-        al_draw_filled_rectangle(cauda[i].x, cauda[i].y, cauda[i].x + TAM_COBRA, cauda[i].y + TAM_COBRA, al_map_rgb(0, 255, 0));
+        al_draw_bitmap_region(icobra, 4 * frameWidth, 0, frameWidth, frameHeigth, cauda[i].x, cauda[i].y, 0);
     }
-    al_draw_filled_rectangle(cauda[0].x, cauda[0].y, cauda[0].x + TAM_COBRA, cauda[0].y + TAM_COBRA, al_map_rgb(0, 200, 0));
+    al_draw_bitmap_region(icobra, curFrame * frameWidth, 0, frameWidth, frameHeigth, cauda[0].x, cauda[0].y, 0);
 }
 
 void Movimento()
@@ -273,21 +309,25 @@ void Movimento()
     switch (DIR)
     {
     case UP:
+
         cauda[0].y -= cobra.velocidade;
         if (cauda[0].y < (TAM_COBRA * 3 + TAM_COBRA))
             cauda[0].y = (TAM_COBRA * 3 + TAM_COBRA);
         break;
     case DOWN:
+
         cauda[0].y += cobra.velocidade;
         if (cauda[0].y > HEIGHT - TAM_COBRA * 2)
             cauda[0].y = HEIGHT - TAM_COBRA * 2;
         break;
     case LEFT:
+
         cauda[0].x -= cobra.velocidade;
         if (cauda[0].x < TAM_COBRA)
             cauda[0].x = TAM_COBRA;
         break;
     case RIGHT:
+
         cauda[0].x += cobra.velocidade;
         if (cauda[0].x > WIDTH - TAM_COBRA * 2)
             cauda[0].x = WIDTH - TAM_COBRA * 2;
@@ -301,7 +341,7 @@ void Movimento()
 void IniciarComida()
 {
     comidas.vida = false;
-    comidas.pontuacao = 10;
+    comidas.pontuacao = 0;
 }
 void desenharComida()
 {
@@ -309,16 +349,16 @@ void desenharComida()
     if (comidas.vida == false)
     {
         comidas.x = (rand() % (WIDTH / TAM_COBRA - 2)) + 1;
-        comidas.y = (rand() % (HEIGHT / TAM_COBRA - 3)) + 4;
-        al_draw_filled_rectangle(comidas.x * TAM_COBRA, comidas.y * TAM_COBRA, comidas.x * TAM_COBRA + TAM_COBRA, comidas.y * TAM_COBRA + TAM_COBRA, al_map_rgb(255, 0, 0));
+        comidas.y = (rand() % (HEIGHT / TAM_COBRA - 4)) + 4;
+        al_draw_bitmap(icomida, comidas.x * TAM_COBRA, comidas.y * TAM_COBRA, 0);
         comidas.vida = true;
     }
-    al_draw_filled_rectangle(comidas.x * TAM_COBRA, comidas.y * TAM_COBRA, comidas.x * TAM_COBRA + TAM_COBRA, comidas.y * TAM_COBRA + TAM_COBRA, al_map_rgb(255, 0, 0));
+    al_draw_bitmap(icomida, comidas.x * TAM_COBRA, comidas.y * TAM_COBRA, 0);
 }
 
 void desenharPontuacao()
 {
-    al_draw_textf(font18, al_map_rgb(255, 255, 255), 5, 5, 0, "Pontuacao %i %i", comidas.x * TAM_COBRA, comidas.y * TAM_COBRA);
+    al_draw_textf(font18, al_map_rgb(255, 255, 255), 5, 5, 0, "Pontos: %i ", comidas.pontuacao);
 }
 
 int verificaColisao()
