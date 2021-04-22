@@ -282,8 +282,8 @@ void IniciarCobra()
     cauda[0].x = 200;
     cauda[0].y = 144;
     cobra.vida = 500;
-    cobra.velocidade = 8;
-    cobra.tam = 3;
+    cobra.velocidade = 2;
+    cobra.tam = 5;
     for (int i = 1; i <= cobra.tam; i++)
     {
         cauda[i].x = cauda[0].x;
@@ -364,13 +364,29 @@ void desenharPontuacao()
 int verificaColisao()
 {
 
-    if (comidas.x == cauda[0].x)
+    if (comidas.x * TAM_COBRA >= cauda[0].x && comidas.x * TAM_COBRA <= cauda[0].x + frameWidth && comidas.y * TAM_COBRA >= cauda[0].y && comidas.y * TAM_COBRA <= cauda[0].y + frameHeigth)
     {
-
-        al_draw_textf(font18, al_map_rgb(0, 0, 0), 5, 5, 0, "Colidiu");
         comidas.pontuacao++;
         comidas.vida = false;
         cobra.tam += 50;
     }
+
+    if(cauda[0].x + TAM_COBRA >= WIDTH - TAM_COBRA || cauda[0].x  <= TAM_COBRA || cauda[0].y  <= TAM_COBRA * 3 + 8 || cauda[0].y + TAM_COBRA  >= HEIGHT - TAM_COBRA){
+
+        isGameOver = true;
+
+    }
+
+    for(int i = 2; i<= TAM_CAUDA; i++){
+
+
+        if(cauda[0].x >= cauda[i].x - TAM_COBRA && cauda[0].x <= cauda[i].x && cauda[0].y <= cauda[i].y + TAM_COBRA && cauda[0].y >= cauda[i].y && cauda[i].vida == 1){
+
+            isGameOver = true;
+
+        }
+
+    }
+
     return 0;
 }
