@@ -377,10 +377,10 @@ int verificaColisao()
 
     }
 
-    for(int i = 2; i<= TAM_CAUDA; i++){
+    for(int i = 8; i<= cobra.tam; i++){
 
 
-        if(cauda[0].x >= cauda[i].x - TAM_COBRA && cauda[0].x <= cauda[i].x && cauda[0].y <= cauda[i].y + TAM_COBRA && cauda[0].y >= cauda[i].y && cauda[i].vida == 1){
+        if(cauda[0].x == cauda[i + 1].x && cauda[0].y == cauda[i].y + 8){
 
             isGameOver = true;
 
