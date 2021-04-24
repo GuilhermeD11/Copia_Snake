@@ -130,6 +130,7 @@ void loopJogo()
 
     while (!done)
     {
+        verificaColisao();
         ALLEGRO_EVENT ev;
         al_wait_for_event(event_queue, &ev);
 
@@ -191,46 +192,37 @@ void loopJogo()
                 break;
             case ALLEGRO_KEY_UP:
                 keys[UP] = true;
+                keys[DOWN] = false;
+                keys[LEFT] = false;
+                keys[RIGHT] = false;
 
                 break;
             case ALLEGRO_KEY_DOWN:
+                keys[UP] = false;
                 keys[DOWN] = true;
+                keys[LEFT] = false;
+                keys[RIGHT] = false;
 
                 break;
             case ALLEGRO_KEY_LEFT:
-
+                keys[UP] = false;
+                keys[DOWN] = false;
                 keys[LEFT] = true;
+                keys[RIGHT] = false;
                 break;
             case ALLEGRO_KEY_RIGHT:
-
+                keys[UP] = false;
+                keys[DOWN] = false;
+                keys[LEFT] = false;
                 keys[RIGHT] = true;
                 break;
             case ALLEGRO_KEY_D:
                 comidas.vida = false;
-                cobra.tam++;
+                cobra.tam+= 50;
                 comidas.pontuacao +=10;
                 break;
-            }
-        }
-        else if (ev.type == ALLEGRO_EVENT_KEY_UP)
-        {
-            switch (ev.keyboard.keycode)
-            {
-            case ALLEGRO_KEY_ESCAPE:
-                done = true;
-                break;
-            case ALLEGRO_KEY_UP:
-                keys[UP] = false;
-                break;
-            case ALLEGRO_KEY_DOWN:
-                keys[DOWN] = false;
-                break;
-            case ALLEGRO_KEY_LEFT:
-                keys[LEFT] = false;
-                break;
-            case ALLEGRO_KEY_RIGHT:
-                keys[RIGHT] = false;
-                break;
+            case ALLEGRO_KEY_A:
+                isGameOver = false;
             }
         }
 
@@ -242,7 +234,6 @@ void loopJogo()
             {
                 desenharPontuacao();
                 desenharComida;
-                verificaColisao();
             }
             else
             {
@@ -359,16 +350,30 @@ void desenharComida()
 void desenharPontuacao()
 {
     al_draw_textf(font18, al_map_rgb(255, 255, 255), 5, 5, 0, "Pontos: %i ", comidas.pontuacao);
+    al_draw_textf(font18, al_map_rgb(255, 255, 255), 55, 55, 0, " %d %d ", comidas.x * TAM_COBRA, comidas.y * TAM_COBRA);
+    al_draw_textf(font18, al_map_rgb(255, 255, 255), 105, 105, 0, " %d %d ", cauda[0].x, cauda[0].y);
+    al_draw_filled_rectangle(comidas.x*TAM_COBRA,comidas.y*TAM_COBRA,comidas.x*TAM_COBRA+8,comidas.y*TAM_COBRA+8,al_map_rgb(255, 255, 255));
 }
 
 int verificaColisao()
 {
 
-    if (comidas.x * TAM_COBRA >= cauda[0].x && comidas.x * TAM_COBRA <= cauda[0].x + frameWidth && comidas.y * TAM_COBRA >= cauda[0].y && comidas.y * TAM_COBRA <= cauda[0].y + frameHeigth)
+    if (cauda[0].x >= comidas.x * TAM_COBRA && cauda[0].x <= comidas.x * TAM_COBRA + 8 && cauda[0].y >= comidas.y * TAM_COBRA && cauda[0].y <= comidas.y * TAM_COBRA + 8)
     {
+
         comidas.pontuacao++;
         comidas.vida = false;
-        cobra.tam += 50;
+        cobra.tam += 10;
+
+
+    }else if (cauda[0].x + 8 >= comidas.x * TAM_COBRA && cauda[0].x + 8 <= comidas.x * TAM_COBRA + 8 && cauda[0].y + 8 >= comidas.y * TAM_COBRA && cauda[0].y + 8 <= comidas.y * TAM_COBRA + 8)
+    {
+
+        comidas.pontuacao++;
+        comidas.vida = false;
+        cobra.tam += 10;
+
+
     }
 
     if(cauda[0].x + TAM_COBRA >= WIDTH - TAM_COBRA || cauda[0].x  <= TAM_COBRA || cauda[0].y  <= TAM_COBRA * 3 + 8 || cauda[0].y + TAM_COBRA  >= HEIGHT - TAM_COBRA){
