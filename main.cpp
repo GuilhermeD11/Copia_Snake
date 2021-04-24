@@ -36,6 +36,7 @@ void IniciarComida();
 void desenharComida();
 
 void desenharPontuacao();
+void desenharTelaFinal();
 
 void MoverCima();
 void MoverBaixo();
@@ -218,8 +219,6 @@ void loopJogo()
                 break;
             case ALLEGRO_KEY_D:
                 comidas.vida = false;
-                cobra.tam+= 50;
-                comidas.pontuacao +=10;
                 break;
             case ALLEGRO_KEY_A:
                 isGameOver = false;
@@ -235,16 +234,23 @@ void loopJogo()
                 desenharPontuacao();
                 desenharComida;
             }
-            else
-            {
-            }
 
             al_flip_display();
             al_clear_to_color(al_map_rgb(0, 0, 0));
         }
+
+        if(isGameOver){
+
+              done = true;
+
+        }
+
+
     }
+
+
 }
-void fimJogo();
+
 
 void desenharParede()
 {
@@ -340,7 +346,7 @@ void desenharComida()
     if (comidas.vida == false)
     {
         comidas.x = (rand() % (WIDTH / TAM_COBRA - 2)) + 1;
-        comidas.y = (rand() % (HEIGHT / TAM_COBRA - 4)) + 4;
+        comidas.y = (rand() % (HEIGHT / TAM_COBRA - 5)) + 4;
         al_draw_bitmap(icomida, comidas.x * TAM_COBRA, comidas.y * TAM_COBRA, 0);
         comidas.vida = true;
     }
@@ -394,4 +400,13 @@ int verificaColisao()
     }
 
     return 0;
+}
+
+void desenharTelaFinal()
+{
+    al_draw_filled_rectangle(0,0,WIDTH,HEIGHT,al_map_rgb(255, 255, 255));
+    al_draw_textf(font18, al_map_rgb(255, 255, 255), 5, 5, 0, "Pontos: %i ", comidas.pontuacao);
+    al_draw_textf(font18, al_map_rgb(255, 255, 255), 55, 55, 0, " %d %d ", comidas.x * TAM_COBRA, comidas.y * TAM_COBRA);
+    al_draw_textf(font18, al_map_rgb(255, 255, 255), 105, 105, 0, " %d %d ", cauda[0].x, cauda[0].y);
+
 }
