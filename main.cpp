@@ -3,6 +3,8 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 #include "structs.h"
 
 //GLOBALS==============================
@@ -18,7 +20,12 @@ enum KEYS
     RIGHT,
 };
 
-enum STATE{TITLE,PLAYING,LOST};
+enum STATE
+{
+    TITLE,
+    PLAYING,
+    LOST
+};
 
 bool keys[4] = {false, false, false, false};
 
@@ -72,9 +79,11 @@ ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_FONT *font18 = NULL;
 ALLEGRO_FONT *font36 = NULL;
+ALLEGRO_FONT *font72 = NULL;
 ALLEGRO_BITMAP *icobra = NULL;
 ALLEGRO_BITMAP *icomida = NULL;
 ALLEGRO_BITMAP *paredes = NULL;
+ALLEGRO_SAMPLE *sample = NULL;
 
 int main(void)
 {
@@ -93,6 +102,10 @@ int main(void)
     al_init_font_addon();
     al_init_ttf_addon();
     al_init_image_addon();
+    al_install_audio();
+    al_init_acodec_addon();
+
+    al_reserve_samples(1);
 
     event_queue = al_create_event_queue();
     timer = al_create_timer(1.0 / FPS);
@@ -105,11 +118,18 @@ int main(void)
     icomida = al_load_bitmap("assets/comida.png");
     paredes = al_load_bitmap("assets/paredes.png");
 
+    sample = al_load_sample("assets/som.ogg");
+
+    al_play_sample(sample, 1, 0, 1, ALLEGRO_PLAYMODE_LOOP, NULL);
+
     font18 = al_load_font("font.ttf", 18, 0);
     font36 = al_load_font("font.ttf", 36, 0);
+    font72 = al_load_font("font.ttf", 72, 0);
     if (!font18)
         return -1;
     if (!font36)
+        return -1;
+    if (!font72)
         return -1;
 
     al_register_event_source(event_queue, al_get_keyboard_event_source());
@@ -118,8 +138,6 @@ int main(void)
 
     al_start_timer(timer);
 
-
-
     changeState(state, TITLE);
 
     loopJogo();
@@ -127,10 +145,13 @@ int main(void)
     al_destroy_event_queue(event_queue);
     al_destroy_timer(timer);
     al_destroy_font(font18);
+    al_destroy_font(font36);
+    al_destroy_font(font72);
     al_destroy_display(display); //destroy our display object
     al_destroy_bitmap(icobra);
     al_destroy_bitmap(icomida);
     al_destroy_bitmap(paredes);
+    al_destroy_sample(sample);
 
     return 0;
 }
@@ -148,15 +169,13 @@ void loopJogo()
     while (!done)
     {
 
-
-
         ALLEGRO_EVENT ev;
         al_wait_for_event(event_queue, &ev);
 
-        if(state == PLAYING){
+        if (state == PLAYING)
+        {
 
             comecoJogo();
-
         }
 
         if (ev.type == ALLEGRO_EVENT_TIMER)
@@ -240,13 +259,15 @@ void loopJogo()
                 keys[RIGHT] = true;
                 break;
             case ALLEGRO_KEY_C:
-                if(state==TITLE){
-                    changeState(state,PLAYING);
+                if (state == TITLE)
+                {
+                    changeState(state, PLAYING);
                 }
 
-                if(state==LOST){
-                        IniciarComida();
-                        changeState(state,PLAYING);
+                if (state == LOST)
+                {
+                    IniciarComida();
+                    changeState(state, PLAYING);
                 }
                 break;
             }
@@ -256,8 +277,10 @@ void loopJogo()
         {
             redraw = false;
 
-            if(state == TITLE){
-                al_draw_textf(font36, al_map_rgb(255, 255, 255), WIDTH/2, HEIGHT/2, ALLEGRO_ALIGN_CENTER, "APERTE C PARA INICIAR");
+            if (state == TITLE)
+            {
+                al_draw_textf(font72, al_map_rgb(0, 255, 0), WIDTH / 2, HEIGHT / 2 - 72, ALLEGRO_ALIGN_CENTER, "SNAKE");
+                al_draw_textf(font36, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTER, "APERTE C PARA INICIAR");
             }
 
             if (state == PLAYING)
@@ -267,38 +290,32 @@ void loopJogo()
                 desenharComida();
             }
 
-            if(state == LOST){
+            if (state == LOST)
+            {
 
-                    al_draw_textf(font36, al_map_rgb(255, 255, 255), WIDTH/2, HEIGHT/2, ALLEGRO_ALIGN_CENTER, "APERTE C PARA REINICIAR");
-                    al_draw_textf(font36, al_map_rgb(255, 255, 255), WIDTH/2, HEIGHT/2 + 40, ALLEGRO_ALIGN_CENTER, "PONTOS: %d", comidas.pontuacao);
-
+                al_draw_textf(font36, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTER, "APERTE C PARA REINICIAR");
+                al_draw_textf(font36, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 40, ALLEGRO_ALIGN_CENTER, "PONTOS: %d", comidas.pontuacao);
             }
 
             al_flip_display();
             al_clear_to_color(al_map_rgb(0, 0, 0));
         }
 
-        if(isGameOver){
+        if (isGameOver)
+        {
 
-                for(int i = 1;i<=cobra.tam;i++){
+            for (int i = 1; i <= cobra.tam; i++)
+            {
+                cauda[i].x = -TAM_COBRA;
+                cauda[i].y = -TAM_COBRA;
+            }
 
-                    cauda[i].x = -TAM_COBRA;
-                    cauda[i].y = -TAM_COBRA;
-                    IniciarCobra();
-
-                }
-
-              changeState(state,LOST);
-              isGameOver = false;
-
+            IniciarCobra();
+            changeState(state, LOST);
+            isGameOver = false;
         }
-
-
     }
-
-
 }
-
 
 void desenharParede()
 {
@@ -316,10 +333,10 @@ void desenharParede()
     }
     al_draw_bitmap_region(paredes, 6 * frameWidth, 0, frameWidth, frameHeigth, 0, 0, 0);
     al_draw_bitmap_region(paredes, 7 * frameWidth, 0, frameWidth, frameHeigth, WIDTH - TAM_COBRA, 0, 0);
-    al_draw_bitmap_region(paredes, 7 * frameWidth, 0, frameWidth, frameHeigth, 0, HEIGHT-TAM_COBRA, 0);
-    al_draw_bitmap_region(paredes, 6 * frameWidth, 0, frameWidth, frameHeigth, WIDTH - TAM_COBRA, HEIGHT-TAM_COBRA, 0);
+    al_draw_bitmap_region(paredes, 7 * frameWidth, 0, frameWidth, frameHeigth, 0, HEIGHT - TAM_COBRA, 0);
+    al_draw_bitmap_region(paredes, 6 * frameWidth, 0, frameWidth, frameHeigth, WIDTH - TAM_COBRA, HEIGHT - TAM_COBRA, 0);
     al_draw_bitmap_region(paredes, 6 * frameWidth, 0, frameWidth, frameHeigth, 0, TAM_COBRA * 3, 0);
-    al_draw_bitmap_region(paredes, 7 * frameWidth, 0, frameWidth, frameHeigth, WIDTH-TAM_COBRA, TAM_COBRA * 3, 0);
+    al_draw_bitmap_region(paredes, 7 * frameWidth, 0, frameWidth, frameHeigth, WIDTH - TAM_COBRA, TAM_COBRA * 3, 0);
 }
 
 void IniciarCobra()
@@ -415,33 +432,29 @@ int verificaColisao()
         comidas.pontuacao++;
         comidas.vida = false;
         cobra.tam += 10;
-
-
-    }else if (cauda[0].x + 8 >= comidas.x * TAM_COBRA && cauda[0].x + 8 <= comidas.x * TAM_COBRA + 8 && cauda[0].y + 8 >= comidas.y * TAM_COBRA && cauda[0].y + 8 <= comidas.y * TAM_COBRA + 8)
+    }
+    else if (cauda[0].x + 8 >= comidas.x * TAM_COBRA && cauda[0].x + 8 <= comidas.x * TAM_COBRA + 8 && cauda[0].y + 8 >= comidas.y * TAM_COBRA && cauda[0].y + 8 <= comidas.y * TAM_COBRA + 8)
     {
 
         comidas.pontuacao++;
         comidas.vida = false;
         cobra.tam += 10;
-
-
     }
 
-    if(cauda[0].x + TAM_COBRA >= WIDTH - TAM_COBRA || cauda[0].x  <= TAM_COBRA || cauda[0].y  <= TAM_COBRA * 3 + 8 || cauda[0].y + TAM_COBRA  >= HEIGHT - TAM_COBRA){
+    if (cauda[0].x + TAM_COBRA >= WIDTH - TAM_COBRA || cauda[0].x <= TAM_COBRA || cauda[0].y <= TAM_COBRA * 3 + 8 || cauda[0].y + TAM_COBRA >= HEIGHT - TAM_COBRA)
+    {
 
         isGameOver = true;
-
     }
 
-    for(int i = 8; i<= cobra.tam; i++){
+    for (int i = 8; i <= cobra.tam; i++)
+    {
 
-
-        if(cauda[0].x == cauda[i + 1].x && cauda[0].y == cauda[i].y + 8){
+        if (cauda[0].x == cauda[i + 1].x && cauda[0].y == cauda[i].y + 8)
+        {
 
             isGameOver = true;
-
         }
-
     }
 
     return 0;
@@ -449,15 +462,13 @@ int verificaColisao()
 
 void desenharTelaFinal()
 {
-    al_draw_filled_rectangle(0,0,WIDTH,HEIGHT,al_map_rgb(255, 255, 255));
+    al_draw_filled_rectangle(0, 0, WIDTH, HEIGHT, al_map_rgb(255, 255, 255));
     al_draw_textf(font18, al_map_rgb(255, 255, 255), 5, 5, 0, "Pontos: %i ", comidas.pontuacao);
     al_draw_textf(font18, al_map_rgb(255, 255, 255), 55, 55, 0, " %d %d ", comidas.x * TAM_COBRA, comidas.y * TAM_COBRA);
     al_draw_textf(font18, al_map_rgb(255, 255, 255), 105, 105, 0, " %d %d ", cauda[0].x, cauda[0].y);
-
 }
 
 void changeState(int &state, int newState)
 {
-	state = newState;
-
+    state = newState;
 }
