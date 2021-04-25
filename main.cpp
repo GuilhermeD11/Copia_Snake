@@ -25,10 +25,6 @@ enum estado
 };
 
 //VARIAVEIS GLOBAIS
-Cobra cobra;
-Comida comidas;
-Cobra cauda[TAM_CAUDA];
-
 const int largura = 1200;
 const int altura = 864;
 const int TAM_COBRA = 8;
@@ -45,6 +41,10 @@ int tamQuadrado = 8;
 int estado = -1;
 
 bool direcoes[4] = {false, false, false, false};
+
+Controle cobra;
+Comida comidas;
+Cobra cauda[TAM_CAUDA];
 
 //DECLARANDO AS FUNCOES
 

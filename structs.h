@@ -3,6 +3,11 @@ struct Cobra
 {
 	int x;
 	int y;
+
+};
+
+struct Controle
+{
 	int vida;
 	int velocidade;
 	int tam;
