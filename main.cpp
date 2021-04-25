@@ -17,6 +17,9 @@ enum KEYS
     LEFT,
     RIGHT,
 };
+
+enum STATE{TITLE,PLAYING,LOST};
+
 bool keys[4] = {false, false, false, false};
 
 //prototypes
@@ -43,6 +46,8 @@ void MoverBaixo();
 void MoverEsquerda();
 void MoverDireita();
 
+void changeState(int &state, int newState);
+
 int verificaColisao();
 
 //primitive variable
@@ -59,12 +64,14 @@ Cobra cauda[TAM_CAUDA];
 int curFrame = 2;
 int frameHeigth = 8;
 int frameWidth = 8;
+int state = -1;
 
 //Allegro variables
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_FONT *font18 = NULL;
+ALLEGRO_FONT *font36 = NULL;
 ALLEGRO_BITMAP *icobra = NULL;
 ALLEGRO_BITMAP *icomida = NULL;
 ALLEGRO_BITMAP *paredes = NULL;
@@ -87,10 +94,6 @@ int main(void)
     al_init_ttf_addon();
     al_init_image_addon();
 
-    icobra = al_load_bitmap("assets/cobra.png");
-    icomida = al_load_bitmap("assets/comida.png");
-    paredes = al_load_bitmap("assets/paredes.png");
-
     event_queue = al_create_event_queue();
     timer = al_create_timer(1.0 / FPS);
 
@@ -98,8 +101,15 @@ int main(void)
     IniciarCobra();
     IniciarComida();
 
+    icobra = al_load_bitmap("assets/cobra.png");
+    icomida = al_load_bitmap("assets/comida.png");
+    paredes = al_load_bitmap("assets/paredes.png");
+
     font18 = al_load_font("font.ttf", 18, 0);
+    font36 = al_load_font("font.ttf", 36, 0);
     if (!font18)
+        return -1;
+    if (!font36)
         return -1;
 
     al_register_event_source(event_queue, al_get_keyboard_event_source());
@@ -108,6 +118,10 @@ int main(void)
 
     al_start_timer(timer);
 
+
+
+    changeState(state, TITLE);
+
     loopJogo();
 
     al_destroy_event_queue(event_queue);
@@ -115,6 +129,8 @@ int main(void)
     al_destroy_font(font18);
     al_destroy_display(display); //destroy our display object
     al_destroy_bitmap(icobra);
+    al_destroy_bitmap(icomida);
+    al_destroy_bitmap(paredes);
 
     return 0;
 }
@@ -131,11 +147,17 @@ void loopJogo()
 
     while (!done)
     {
-        verificaColisao();
+
+
+
         ALLEGRO_EVENT ev;
         al_wait_for_event(event_queue, &ev);
 
-        comecoJogo();
+        if(state == PLAYING){
+
+            comecoJogo();
+
+        }
 
         if (ev.type == ALLEGRO_EVENT_TIMER)
         {
@@ -217,11 +239,16 @@ void loopJogo()
                 keys[LEFT] = false;
                 keys[RIGHT] = true;
                 break;
-            case ALLEGRO_KEY_D:
-                comidas.vida = false;
+            case ALLEGRO_KEY_C:
+                if(state==TITLE){
+                    changeState(state,PLAYING);
+                }
+
+                if(state==LOST){
+                        IniciarComida();
+                        changeState(state,PLAYING);
+                }
                 break;
-            case ALLEGRO_KEY_A:
-                isGameOver = false;
             }
         }
 
@@ -229,10 +256,22 @@ void loopJogo()
         {
             redraw = false;
 
-            if (!isGameOver)
+            if(state == TITLE){
+                al_draw_textf(font36, al_map_rgb(255, 255, 255), WIDTH/2, HEIGHT/2, ALLEGRO_ALIGN_CENTER, "APERTE C PARA INICIAR");
+            }
+
+            if (state == PLAYING)
             {
+                verificaColisao();
                 desenharPontuacao();
-                desenharComida;
+                desenharComida();
+            }
+
+            if(state == LOST){
+
+                    al_draw_textf(font36, al_map_rgb(255, 255, 255), WIDTH/2, HEIGHT/2, ALLEGRO_ALIGN_CENTER, "APERTE C PARA REINICIAR");
+                    al_draw_textf(font36, al_map_rgb(255, 255, 255), WIDTH/2, HEIGHT/2 + 40, ALLEGRO_ALIGN_CENTER, "PONTOS: %d", comidas.pontuacao);
+
             }
 
             al_flip_display();
@@ -241,7 +280,16 @@ void loopJogo()
 
         if(isGameOver){
 
-              done = true;
+                for(int i = 1;i<=cobra.tam;i++){
+
+                    cauda[i].x = -TAM_COBRA;
+                    cauda[i].y = -TAM_COBRA;
+                    IniciarCobra();
+
+                }
+
+              changeState(state,LOST);
+              isGameOver = false;
 
         }
 
@@ -356,9 +404,6 @@ void desenharComida()
 void desenharPontuacao()
 {
     al_draw_textf(font18, al_map_rgb(255, 255, 255), 5, 5, 0, "Pontos: %i ", comidas.pontuacao);
-    al_draw_textf(font18, al_map_rgb(255, 255, 255), 55, 55, 0, " %d %d ", comidas.x * TAM_COBRA, comidas.y * TAM_COBRA);
-    al_draw_textf(font18, al_map_rgb(255, 255, 255), 105, 105, 0, " %d %d ", cauda[0].x, cauda[0].y);
-    al_draw_filled_rectangle(comidas.x*TAM_COBRA,comidas.y*TAM_COBRA,comidas.x*TAM_COBRA+8,comidas.y*TAM_COBRA+8,al_map_rgb(255, 255, 255));
 }
 
 int verificaColisao()
@@ -408,5 +453,11 @@ void desenharTelaFinal()
     al_draw_textf(font18, al_map_rgb(255, 255, 255), 5, 5, 0, "Pontos: %i ", comidas.pontuacao);
     al_draw_textf(font18, al_map_rgb(255, 255, 255), 55, 55, 0, " %d %d ", comidas.x * TAM_COBRA, comidas.y * TAM_COBRA);
     al_draw_textf(font18, al_map_rgb(255, 255, 255), 105, 105, 0, " %d %d ", cauda[0].x, cauda[0].y);
+
+}
+
+void changeState(int &state, int newState)
+{
+	state = newState;
 
 }
