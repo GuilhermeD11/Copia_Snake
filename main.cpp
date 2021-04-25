@@ -7,11 +7,8 @@
 #include <allegro5/allegro_acodec.h>
 #include "structs.h"
 
-//GLOBALS==============================
-const int largura = 1200;
-const int altura = 864;
-const int TAM_COBRA = 8;
-const int TAM_CAUDA = 4000;
+//ENUMERANDO VARIAVEIS
+
 enum DIRECOES
 {
     CIMA,
@@ -27,9 +24,29 @@ enum estado
     FIM
 };
 
+//VARIAVEIS GLOBAIS
+Cobra cobra;
+Comida comidas;
+Cobra cauda[TAM_CAUDA];
+
+const int largura = 1200;
+const int altura = 864;
+const int TAM_COBRA = 8;
+const int TAM_CAUDA = 4000;
+const int FPS = 60;
+
+bool controle = false;
+bool redesenhar = true;
+bool fimDeJogo = false;
+
+int DIR = BAIXO;
+int direcaoAtual = 2;
+int tamQuadrado = 8;
+int estado = -1;
+
 bool direcoes[4] = {false, false, false, false};
 
-//prototypes
+//DECLARANDO AS FUNCOES
 
 void comecoJogo();
 void loopJogo();
@@ -57,22 +74,8 @@ void trocarEstado(int &estado, int novoEstado);
 
 int verificaColisao();
 
-//primitive variable
-bool controle = false;
-bool redesenhar = true;
-const int FPS = 60;
-bool fimDeJogo = false;
 
-//object variables
-int DIR = BAIXO;
-Cobra cobra;
-Comida comidas;
-Cobra cauda[TAM_CAUDA];
-int direcaoAtual = 2;
-int tamQuadrado = 8;
-int estado = -1;
-
-//Allegro variables
+//VARIAVEIS DO ALLEGRO
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 ALLEGRO_TIMER *timer = NULL;
@@ -84,18 +87,23 @@ ALLEGRO_BITMAP *icomida = NULL;
 ALLEGRO_BITMAP *paredes = NULL;
 ALLEGRO_SAMPLE *sample = NULL;
 
+
+//FUNCAO INICIAL
 int main(void)
 {
 
-    //Initialization Functions
-    if (!al_init()) //initialize Allegro
+    //INICIALIZANDO ALLEGRO
+    if (!al_init())
         return -1;
 
-    display = al_create_display(largura, altura); //create our display object
+    //CRIANDO DISPLAY
+    display = al_create_display(largura, altura);
 
-    if (!display) //test display object
+    if (!display)
         return -1;
 
+    
+    //INICIALIZANDO ALGUMAS FUNCOES DO ALLEGRO
     al_init_primitives_addon();
     al_install_keyboard();
     al_init_font_addon();
@@ -107,20 +115,29 @@ int main(void)
     al_reserve_samples(1);
 
     event_queue = al_create_event_queue();
+
+    //CRIANDO O TIMER
     timer = al_create_timer(1.0 / FPS);
 
+    //CRIANDO SEMENTE PARA NÚMEROS ALEATÓRIOS
     srand(time(NULL));
+
+    //INICIANDO COBRA E COMIDA
     IniciarCobra();
     IniciarComida();
 
+    //CARREGANDO SPRITES
     icobra = al_load_bitmap("assets/cobra.png");
     icomida = al_load_bitmap("assets/comida.png");
     paredes = al_load_bitmap("assets/paredes.png");
 
+    //CARREGANDO SOM
     sample = al_load_sample("assets/som.ogg");
 
+    //TOCANDO SOM
     al_play_sample(sample, 1, 0, 1, ALLEGRO_PLAYMODE_LOOP, NULL);
 
+    //CARREGANDO FONTES
     font18 = al_load_font("font.ttf", 18, 0);
     font36 = al_load_font("font.ttf", 36, 0);
     font72 = al_load_font("font.ttf", 72, 0);
@@ -137,16 +154,17 @@ int main(void)
 
     al_start_timer(timer);
 
+    //INICIANDO O JOGO E ENTRANDO NO LOOP
     trocarEstado(estado, COMECO);
-
     loopJogo();
 
+    //DESTRUINDO EVENTOS, FONTES, DISPLAYS, BITMAPS E SOM
     al_destroy_event_queue(event_queue);
     al_destroy_timer(timer);
     al_destroy_font(font18);
     al_destroy_font(font36);
     al_destroy_font(font72);
-    al_destroy_display(display); //destroy our display object
+    al_destroy_display(display);
     al_destroy_bitmap(icobra);
     al_destroy_bitmap(icomida);
     al_destroy_bitmap(paredes);
@@ -155,28 +173,24 @@ int main(void)
     return 0;
 }
 
-void comecoJogo()
-{
-    desenharComida();
-    desenharCobra();
-    Movimento();
-    desenharParede();
-}
+//FUNCAO PRINCIPAL DO JOGO
 void loopJogo()
 {
 
+    //LOOP DO JOGO
     while (!controle)
     {
 
         ALLEGRO_EVENT ev;
         al_wait_for_event(event_queue, &ev);
 
+        //COMECANDO O JOGO
         if (estado == JOGO)
         {
-
             comecoJogo();
         }
 
+        //VERIFICANDO TECLAS PRESSIONADAS
         if (ev.type == ALLEGRO_EVENT_TIMER)
         {
             redesenhar = true;
@@ -272,6 +286,7 @@ void loopJogo()
             }
         }
 
+        //DESENHANDO, VERIFICANDO ESTADO E COLISÃO
         if (redesenhar && al_is_event_queue_empty(event_queue))
         {
             redesenhar = false;
@@ -300,6 +315,7 @@ void loopJogo()
             al_clear_to_color(al_map_rgb(0, 0, 0));
         }
 
+        //FIM DO JOGO
         if (fimDeJogo)
         {
 
@@ -316,6 +332,16 @@ void loopJogo()
     }
 }
 
+//FUNÇÃO PARA INICIAR O JOGO
+void comecoJogo()
+{
+    desenharComida();
+    desenharCobra();
+    Movimento();
+    desenharParede();
+}
+
+//FUNÇÃO PARA DESENHAR PAREDE
 void desenharParede()
 {
 
@@ -338,6 +364,7 @@ void desenharParede()
     al_draw_bitmap_region(paredes, 7 * tamQuadrado, 0, tamQuadrado, tamQuadrado, largura - TAM_COBRA, TAM_COBRA * 3, 0);
 }
 
+//FUNÇÃO PARA DEFINIR PARÂMETROS INICAIS DA COBRA
 void IniciarCobra()
 {
     cauda[0].x = 200;
@@ -351,6 +378,8 @@ void IniciarCobra()
         cauda[i].y = cauda[0].y;
     }
 }
+
+//FUNÇÃO PARA DESENHAR A COBRA
 void desenharCobra()
 {
     for (int i = 0; i <= cobra.tam; i++)
@@ -360,6 +389,7 @@ void desenharCobra()
     al_draw_bitmap_region(icobra, direcaoAtual * tamQuadrado, 0, tamQuadrado, tamQuadrado, cauda[0].x, cauda[0].y, 0);
 }
 
+//FUNÇÃO PARA CONTROLAR O MOVIMENTO
 void Movimento()
 {
 
@@ -399,11 +429,14 @@ void Movimento()
     }
 }
 
+//FUNÇÃO PARA DEFINIR PARÂMETROS INICAIS DA COMIDA
 void IniciarComida()
 {
     comidas.vida = false;
     comidas.pontuacao = 0;
 }
+
+//FUNÇÃO PARA DESENHAR A COMIDA
 void desenharComida()
 {
 
@@ -417,14 +450,17 @@ void desenharComida()
     al_draw_bitmap(icomida, comidas.x * TAM_COBRA, comidas.y * TAM_COBRA, 0);
 }
 
+//FUNÇÃO PARA DESENHAR A PONTUAÇÃO
 void desenharPontuacao()
 {
     al_draw_textf(font18, al_map_rgb(255, 255, 255), 5, 5, 0, "Pontos: %i ", comidas.pontuacao);
 }
 
+//FUNÇÃO PARA VERIFICAR A COLISÃO
 int verificaColisao()
 {
 
+    //COLISÃO COM A COMIDA
     if (cauda[0].x >= comidas.x * TAM_COBRA && cauda[0].x <= comidas.x * TAM_COBRA + 8 && cauda[0].y >= comidas.y * TAM_COBRA && cauda[0].y <= comidas.y * TAM_COBRA + 8)
     {
 
@@ -440,12 +476,14 @@ int verificaColisao()
         cobra.tam += 10;
     }
 
+    //COLISÃO COM A PAREDE
     if (cauda[0].x + TAM_COBRA >= largura - TAM_COBRA || cauda[0].x <= TAM_COBRA || cauda[0].y <= TAM_COBRA * 3 + 8 || cauda[0].y + TAM_COBRA >= altura - TAM_COBRA)
     {
 
         fimDeJogo = true;
     }
 
+    //COLISÃO COM A CAUDA
     for (int i = 8; i <= cobra.tam; i++)
     {
 
@@ -459,6 +497,7 @@ int verificaColisao()
     return 0;
 }
 
+//FUNÇÃO PARA DESENHAR A TELA FINAL
 void desenharTelaFinal()
 {
     al_draw_filled_rectangle(0, 0, largura, altura, al_map_rgb(255, 255, 255));
@@ -467,6 +506,7 @@ void desenharTelaFinal()
     al_draw_textf(font18, al_map_rgb(255, 255, 255), 105, 105, 0, " %d %d ", cauda[0].x, cauda[0].y);
 }
 
+//FUNÇÃO PARA TROCAR DE ESTADO
 void trocarEstado(int &estado, int novoEstado)
 {
     estado = novoEstado;
