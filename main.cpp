@@ -1,3 +1,8 @@
+/**
+ *ALUNOS: ARTHUR FELISBINO PHELIPPE E GUILHERME DUARTE SANTOS 
+ */
+
+//INCLUINDO BIBLIOTECAS
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
@@ -227,12 +232,6 @@ void loopJogo()
                 }
             }
 
-            if (!fimDeJogo)
-            {
-
-                if (cobra.vida <= 0)
-                    fimDeJogo = true;
-            }
         }
         else if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
         {
@@ -369,7 +368,6 @@ void IniciarCobra()
 {
     cauda[0].x = 200;
     cauda[0].y = 144;
-    cobra.vida = 500;
     cobra.velocidade = 2;
     cobra.tam = 5;
     for (int i = 1; i <= cobra.tam; i++)

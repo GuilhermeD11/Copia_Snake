@@ -8,7 +8,6 @@ struct Cobra
 
 struct Controle
 {
-	int vida;
 	int velocidade;
 	int tam;
 };
